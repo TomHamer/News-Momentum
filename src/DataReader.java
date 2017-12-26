@@ -49,21 +49,13 @@ public class DataReader {
          */
 
         System.out.println("Processing \""+headline+"\"");
-        List<HashMap<String, String>> toReturn = (List<HashMap<String, String>>) Arrays.asList(headline.split(" ")).stream().map(new Function() {
-            @Override
-            public Object apply(Object o) {
-                try {
-                    return getCompanyData((String) o);
-                } catch (IOException e) {
-                    return null;
-                }
+        List<HashMap<String, String>> toReturn = (List<HashMap<String, String>>) Arrays.asList(headline.split(" ")).stream().map((Function) o -> {
+            try {
+                return getCompanyData((String) o);
+            } catch (IOException e) {
+                return null;
             }
-        }).filter(new Predicate() {
-            @Override
-            public boolean test(Object o) {
-                return !(o==null);
-            }
-        }).collect(Collectors.toList());
+        }).filter(o -> !(o==null)).collect(Collectors.toList());
         return toReturn;
     }
 
