@@ -2,9 +2,12 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -14,6 +17,10 @@ import java.util.stream.Collectors;
  * Created by Tom on 23/12/2017.
  */
 public class DataReader {
+
+    private static boolean initialised = false;
+    private static HashSet<String> goodPhrases;
+    private static HashSet<String> badPhrases;
 
     private static boolean isProperNoun(String s) {
         return !(s.toCharArray()[0]==s.toLowerCase().toCharArray()[0]);
@@ -49,30 +56,67 @@ public class DataReader {
          */
 
         System.out.println("Processing \""+headline+"\"");
-        List<HashMap<String, String>> toReturn = (List<HashMap<String, String>>) Arrays.asList(headline.split(" ")).stream().map((Function) o -> {
+        return (List<HashMap<String, String>>) Arrays.asList(headline.split(" ")).stream().map((Function) o -> {
             try {
                 return getCompanyData((String) o);
             } catch (IOException e) {
                 return null;
             }
         }).filter(o -> !(o==null)).collect(Collectors.toList());
-        return toReturn;
     }
 
 
     public static Action getRequiredAction(String title) {
 
-        if(title.contains("won't oppose")) {
-            return(Action.BUY);
+        if (!initialised) initialise();
+
+        for (String phrase : goodPhrases) {
+            if (title.contains(phrase)) {
+                return (Action.BUY);
+            }
         }
 
-        if(title.contains("to oppose")) {
-            return(Action.SELL);
+        for (String phrase : badPhrases) {
+            if (title.contains(phrase)) {
+                return (Action.SELL);
+            }
         }
 
         return Action.HOLD;
 
 
+    }
+
+    private static void initialise() {
+
+        goodPhrases = new HashSet<>();
+        badPhrases = new HashSet<>();
+
+        try(BufferedReader br = new BufferedReader(new FileReader("resources/good-phrases.txt"))) {
+            String line = "";
+
+            while (line != null) {
+                line = br.readLine();
+                if (line != null) goodPhrases.add(line);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try(BufferedReader br = new BufferedReader(new FileReader("resources/bad-phrases.txt"))) {
+            String line = "";
+
+            while (line != null) {
+                line = br.readLine();
+                if (line != null) badPhrases.add(line);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        initialised = true;
     }
 
 

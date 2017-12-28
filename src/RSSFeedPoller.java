@@ -46,24 +46,21 @@ public class RSSFeedPoller implements Runnable {
                     List<SyndEntryImpl> data = feed.getEntries();
                     data = data.subList(0,min(data.size(),LOOKAHEAD));
 
-                    for(SyndEntryImpl d : data) {
-
-                        if (!seen.contains(d)) {
-                            seen.add(d);
-                            if (RSSFeedPollerHelper.itemIsRecent(d)) {
-                                for (HashMap companyData : DataReader.getCompanyNames(d.getTitle())) {
-                                    System.out.println("Extracted company data "+companyData);
-                                    if (companyData != null) {
-                                        if (DataReader.getRequiredAction(d.getTitle()).equals(Action.BUY)) {
-                                            Trader.buy((String) companyData.get("ticker"), (String) companyData.get("marketSym"));
-                                        } else if (DataReader.getRequiredAction(d.getTitle()).equals(Action.SELL)) {
-                                            Trader.shortSell((String) companyData.get("ticker"), (String) companyData.get("marketSym"));
-                                        }
+                    data.stream().filter(d -> !seen.contains(d)).forEach(d -> {
+                        seen.add(d);
+                        if (RSSFeedPollerHelper.itemIsRecent(d)) {
+                            for (HashMap companyData : DataReader.getCompanyNames(d.getTitle())) {
+                                System.out.println("Extracted company data " + companyData);
+                                if (companyData != null) {
+                                    if (DataReader.getRequiredAction(d.getTitle()).equals(Action.BUY)) {
+                                        Trader.buy((String) companyData.get("ticker"), (String) companyData.get("marketSym"));
+                                    } else if (DataReader.getRequiredAction(d.getTitle()).equals(Action.SELL)) {
+                                        Trader.shortSell((String) companyData.get("ticker"), (String) companyData.get("marketSym"));
                                     }
                                 }
                             }
                         }
-                    }
+                    });
                 } else {
                     throw new FeedException("RSS feed was empty");
                 }
