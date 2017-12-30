@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -29,6 +28,9 @@ public class DataReader {
     public static HashMap<String, String> getCompanyData(String s) throws IOException {
         HashMap<String, String> toReturn = new HashMap<>();
         if (isProperNoun(s)) {
+            //need to lemmalise s, but for now
+            s=s.replace("’s","");
+
             String url = "https://www.google.com.au/search?q=" + s;
             String html = Jsoup.connect(url).get().html();
             Document doc = Jsoup.parse(html);

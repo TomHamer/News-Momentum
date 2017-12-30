@@ -23,14 +23,18 @@ public class RSSFeedPoller implements Runnable {
     private URL feedUrl;
     private HashSet seen = new HashSet<SyndEntryImpl>();
 
-    @Override
-    public void run() {
 
+    public RSSFeedPoller() {
         try {
             this.feedUrl=RSSFeedPollerHelper.getFeed();
         } catch(MalformedURLException e) {
             System.out.println("Could not get feed.");
         }
+
+    }
+
+    @Override
+    public void run() {
 
         while(true) {
             try {
