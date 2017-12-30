@@ -55,6 +55,7 @@ public class IGWrapper {
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 
         con.setRequestMethod("POST");
+        con.setRequestProperty("CST",csToken);
         con.setRequestProperty("X-SECURITY-TOKEN", authToken);
         con.setRequestProperty("VERSION", "2");
         con.setRequestProperty("Content-Type", "application/json; charset=utf8");
