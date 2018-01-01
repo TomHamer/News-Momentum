@@ -1,5 +1,5 @@
 import org.junit.Test;
-import org.json.simple.*;
+import org.json.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -14,6 +14,7 @@ public class IGWrapper {
     private final String USER_AGENT = "Mozilla/5.0";
     private final String authToken;
     private final String csToken;
+    private final String API_KEY = "245d44fad406987d8a6ce78e971870fe3bae1087";
 
     public IGWrapper() throws IOException {
         String url = "https://demo-api.ig.com/gateway/deal/session";
@@ -21,13 +22,10 @@ public class IGWrapper {
         URL obj = new URL(url);
 
         HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-        // optional default is GET
         con.setRequestMethod("POST");
-        con.setRequestProperty("X-IG-API-KEY", "245d44fad406987d8a6ce78e971870fe3bae1087");
+        con.setRequestProperty("X-IG-API-KEY", API_KEY);
         con.setRequestProperty("VERSION", "2");
         con.setRequestProperty("Content-Type", "application/json; charset=utf8");
-
-        //add request header
         con.setRequestProperty("User-Agent", USER_AGENT);
         con.setDoOutput(true);
         String str =  "{ \n" +
@@ -61,6 +59,7 @@ public class IGWrapper {
         con.setRequestProperty("X-SECURITY-TOKEN", authToken);
         con.setRequestProperty("VERSION", "2");
         con.setRequestProperty("Content-Type", "application/json; charset=utf8");
+        con.setRequestProperty("X-IG-API-KEY", API_KEY);
 
         con.setRequestProperty("User-Agent", USER_AGENT);
         con.setDoOutput(true);
@@ -105,7 +104,7 @@ public class IGWrapper {
 
 
 
-        byte[] outputInBytes = jsonObject.toJSONString().getBytes("UTF-8");
+        byte[] outputInBytes = jsonObject.toString().getBytes("UTF-8");
         OutputStream os = con.getOutputStream();
         os.write( outputInBytes );
         os.close();
@@ -124,7 +123,7 @@ public class IGWrapper {
 
     @Test
     public void IGWrapperTest() throws Exception {
-        new IGWrapper().getCFD(Action.BUY,"TLS","ASX", 1);
+        this.getCFD(Action.BUY,"TLS","ASX",100);
     }
 
 

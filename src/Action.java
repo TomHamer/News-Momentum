@@ -3,5 +3,4 @@
  */
 public enum Action {
     BUY, SELL, HOLD;
-
 }
