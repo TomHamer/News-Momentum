@@ -1,7 +1,11 @@
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.Test;
-import org.json.*;
+import sun.plugin.dom.exception.InvalidStateException;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -40,14 +44,43 @@ public class IGWrapper {
         if(con.getResponseCode() == 200) {
             this.authToken = con.getHeaderField("X-SECURITY-TOKEN");
             this.csToken = con.getHeaderField("CST");
-            System.out.println("Constructor output:" + con.getHeaderField("content-type"));
         } else {
             throw new IOException("Failed to connect to trading API");
         }
 
     }
 
-    public void getCFD(Action action, String ticker, String market, int size) throws Exception {
+    private String findEpic(String ticker, String market) throws IOException, JSONException {
+        //if(!market.equals("ASX")) {
+        //    System.out.println("Only supporting ASX");
+        //    throw new NotImplementedException();
+        //}
+
+
+        final String urlBase = "https://demo-api.ig.com/gateway/deal/markets?searchTerm=";
+        String url = urlBase + ticker;
+        URL obj = new URL(url);
+
+        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+
+        con.setRequestMethod("GET");
+        con.setRequestProperty("CST", csToken);
+        con.setRequestProperty("X-SECURITY-TOKEN", authToken);
+        con.setRequestProperty("VERSION", "1");
+        con.setRequestProperty("Content-Type", "application/json; charset=utf8");
+        con.setRequestProperty("X-IG-API-KEY", API_KEY);
+
+        con.setRequestProperty("User-Agent", USER_AGENT);
+        con.setDoOutput(true);
+        if (200 <= con.getResponseCode() && con.getResponseCode() <= 299) {
+            BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream()));
+            JSONObject jsonObject = new JSONObject(br.readLine());
+            return jsonObject.getJSONArray("markets").getJSONObject(0).getString("epic");
+        }
+        throw new InvalidStateException("Expected 200, got "+con.getResponseMessage());
+    }
+
+    public String getCFD(Action action, String ticker, String market, int size) throws IOException, JSONException {
         String url = "https://demo-api.ig.com/gateway/deal/positions/otc";
 
         URL obj = new URL(url);
@@ -65,54 +98,28 @@ public class IGWrapper {
         con.setDoOutput(true);
 
         JSONObject jsonObject = new JSONObject();
-        /*I have hard coded the epic for now. Since it is not a constant, it needs to be searched for everytime.
-         * This is the epic for ASX Ltd at the time of writing. To search for the epic, GET /marketnavigation needs
-         * to be implemented*/
-        jsonObject.put("epic", "AA.D.ASX.CASH.IP");
+
+        jsonObject.put("epic", findEpic(ticker, market));
         jsonObject.put("expiry", "DFB"); // Daily funded bet. See https://www.ig.com/uk/glossary-trading-terms/dfb-definition
         jsonObject.put("direction", action.toString());
         jsonObject.put("size", size);
-        jsonObject.put("orderType", "MARKET"); // See https://www.ig.com/au/orders-articles
+        jsonObject.put("orderLevel","6695.5m");
+        jsonObject.put("orderType", "LIMIT"); // See https://www.ig.com/au/orders-articles
         jsonObject.put("timeInForce", "FILL_OR_KILL"); // See https://labs.ig.com/apiorders
         jsonObject.put("guaranteedStop", false);
         jsonObject.put("trailingStop", false);
         jsonObject.put("forceOpen", false);
         jsonObject.put("currencyCode", "AUD");
 
-//        String str =  "{ \n" +
-//                /*I have hard coded the epic for now. Since it is not a constant, it needs to be searched for everytime.
-//                * This is the epic for ASX Ltd at the time of writing. To search for the epic, GET /marketnavigation needs
-//                * to be implemented*/
-//                "\"epic\": \"AA.D.ASX.CASH.IP\", \n" +
-//                "\"expiry\": \"DFB\" \n" + // Daily funded bet. See https://www.ig.com/uk/glossary-trading-terms/dfb-definition
-//                "\"direction\":" + action + "\n" +
-//                "\"size\":" + 1 + "\n" +
-//                "\"orderType\": \"MARKET\" \n" +  // See https://www.ig.com/au/orders-articles
-//                "\"timeInForce\": \"FILL_OR_KILL\" \n" + // See https://labs.ig.com/apiorders
-//                "\"guaranteedStop\":" + false + "\n" +
-//                "\"trailingStop\":" + false + "\n" +
-//                "\"forceOpen\":" + false + "\n" +
-//                "\"currencyCode\": \"AUD\" \n" +
-//                "} ";
-
-        /*
-        * Also relevant
-        * https://labs.ig.com/rest-trading-api-reference/service-detail?id=542
-        * https://labs.ig.com/node/37
-        * https://www.ig.com/sg/risk-management
-        * */
-
-
-
         byte[] outputInBytes = jsonObject.toString().getBytes("UTF-8");
         OutputStream os = con.getOutputStream();
         os.write( outputInBytes );
         os.close();
-        String reference;
 
         if(con.getResponseCode() == 200) {
-            reference = con.getHeaderField("dealReference");
-            System.out.println(reference);
+            BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream()));
+            JSONObject response = new JSONObject(br.readLine());
+            return response.getString("dealReference");
         } else {
             System.out.println("Method output: " + con.getHeaderField("content-type"));
             throw new IOException("Failed to connect to trading API. Got " + con.getResponseCode() + "(" + con.getHeaderField("errorCode") + ").");
@@ -121,9 +128,13 @@ public class IGWrapper {
         //here add the required body and request properties for the trade.
     }
 
+    public void exitPosition(String dealReference) {
+
+    }
+
     @Test
     public void IGWrapperTest() throws Exception {
-        this.getCFD(Action.BUY,"TLS","ASX",100);
+        System.out.println(getCFD(Action.BUY,"TLS","ASX",100));
     }
 
 
