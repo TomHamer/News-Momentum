@@ -1,4 +1,4 @@
-import com.sun.syndication.feed.synd.SyndEntryImpl;
+import com.rometools.rome.feed.synd.SyndEntry;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -11,7 +11,7 @@ public class RSSFeedPollerHelper {
     static URL getFeed() throws MalformedURLException {
         return new URL("https://www.accc.gov.au/rss/media_releases.xml");
     }
-    static boolean itemIsRecent(SyndEntryImpl item) {
+    static boolean itemIsRecent(SyndEntry item) {
         return (new Date().getTime()-item.getPublishedDate().getTime() <999999999);
     }
 }

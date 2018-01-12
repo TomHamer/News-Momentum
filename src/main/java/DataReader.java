@@ -22,14 +22,14 @@ public class DataReader {
     private static HashSet<String> badPhrases;
 
     private static boolean isProperNoun(String s) {
-        return !(s.toCharArray()[0]==s.toLowerCase().toCharArray()[0]);
+        return !(s.toCharArray()[0] == s.toLowerCase().toCharArray()[0]);
     }
 
     public static HashMap<String, String> getCompanyData(String s) throws IOException {
         HashMap<String, String> toReturn = new HashMap<>();
         if (isProperNoun(s)) {
             //need to lemmalise s, but for now
-            s=s.replace("’s","");
+            s = s.replace("’s", "");
 
             String url = "https://www.google.com.au/search?q=" + s;
             String html = Jsoup.connect(url).get().html();
@@ -39,8 +39,8 @@ public class DataReader {
                 Element stockTicker = doc.select("span[class$=kno-fv]").select("a[class$=fl]").get(0);
                 Element marketSymbol = doc.select("span[class$=kno-fv]").select("span[class$=_RWc]").get(0);
 
-                toReturn.put("ticker",stockTicker.text());
-                toReturn.put("marketSym",marketSymbol.text().replace("(","").replace(")",""));
+                toReturn.put("ticker", stockTicker.text());
+                toReturn.put("marketSym", marketSymbol.text().replace("(", "").replace(")", ""));
                 return toReturn;
 
             } else {
@@ -52,19 +52,19 @@ public class DataReader {
     }
 
 
-    public static List<HashMap<String,String>> getCompanyNames(String headline)  {
+    public static List<HashMap<String, String>> getCompanyNames(String headline) {
         /*
-        * Using list-map-filter-collect allows for implicit concurrency.
+         * Using list-map-filter-collect allows for implicit concurrency.
          */
 
-        System.out.println("Processing \""+headline+"\"");
+        System.out.println("Processing \"" + headline + "\"");
         return (List<HashMap<String, String>>) Arrays.asList(headline.split(" ")).stream().map((Function) o -> {
             try {
                 return getCompanyData((String) o);
             } catch (IOException e) {
                 return null;
             }
-        }).filter(o -> !(o==null)).collect(Collectors.toList());
+        }).filter(o -> !(o == null)).collect(Collectors.toList());
     }
 
 
@@ -94,7 +94,7 @@ public class DataReader {
         goodPhrases = new HashSet<>();
         badPhrases = new HashSet<>();
 
-        try(BufferedReader br = new BufferedReader(new FileReader("resources/good-phrases.txt"))) {
+        try (BufferedReader br = new BufferedReader(new FileReader("src/main/resources/good-phrases.txt"))) {
             String line = "";
 
             while (line != null) {
@@ -106,7 +106,7 @@ public class DataReader {
             e.printStackTrace();
         }
 
-        try(BufferedReader br = new BufferedReader(new FileReader("resources/bad-phrases.txt"))) {
+        try (BufferedReader br = new BufferedReader(new FileReader("src/main/resources/bad-phrases.txt"))) {
             String line = "";
 
             while (line != null) {

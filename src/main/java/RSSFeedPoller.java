@@ -1,7 +1,8 @@
-import com.sun.syndication.feed.synd.SyndEntryImpl;
-import com.sun.syndication.feed.synd.SyndFeed;
-import com.sun.syndication.io.FeedException;
-import com.sun.syndication.io.SyndFeedInput;
+import com.rometools.rome.feed.synd.SyndEntry;
+import com.rometools.rome.feed.synd.SyndEntryImpl;
+import com.rometools.rome.feed.synd.SyndFeed;
+import com.rometools.rome.io.FeedException;
+import com.rometools.rome.io.SyndFeedInput;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -59,7 +60,7 @@ public class RSSFeedPoller implements Runnable {
         SyndFeed feed = input.build(new InputStreamReader(feedUrl.openStream()));
 
         if (feed.getEntries() != null) {
-            List<SyndEntryImpl> data = feed.getEntries();
+            List<SyndEntry> data = feed.getEntries();
             data = data.subList(0, min(data.size(), LOOKAHEAD));
             data.stream().filter(x -> !seen.contains(x)).forEach(d -> {
                 seen.add(d);

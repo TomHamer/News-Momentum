@@ -1,6 +1,5 @@
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.junit.Test;
 import sun.plugin.dom.exception.InvalidStateException;
 
 import java.io.BufferedReader;
@@ -131,12 +130,5 @@ public class IGWrapper {
     public void exitPosition(String dealReference) {
 
     }
-
-    @Test
-    public void IGWrapperTest() throws Exception {
-        System.out.println(getCFD(Action.BUY,"TLS","ASX",100));
-    }
-
-
 
 }
