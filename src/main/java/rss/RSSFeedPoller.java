@@ -1,8 +1,14 @@
+package rss;
+
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndEntryImpl;
 import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.FeedException;
 import com.rometools.rome.io.SyndFeedInput;
+import lombok.extern.slf4j.Slf4j;
+import rss.util.DataReader;
+import trade.Action;
+import trade.Trader;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -18,37 +24,38 @@ import static java.lang.Integer.min;
 /**
  * Created by Tom on 23/12/2017.
  */
+@Slf4j
 public class RSSFeedPoller implements Runnable {
 
     private final static int LOOKAHEAD = 5;
     private URL feedUrl;
     private HashSet seen = new HashSet<SyndEntryImpl>();
 
-
-    public RSSFeedPoller() {
+    private RSSFeedPoller() {
         try {
             this.feedUrl = RSSFeedPollerHelper.getFeed();
         } catch (MalformedURLException e) {
-            System.out.println("Could not get feed.");
+            log.error("Could not get feed", e);
         }
+    }
 
+    public static RSSFeedPoller create() {
+        return new RSSFeedPoller();
     }
 
     @Override
     public void run() {
-
-        while (true) {
+        while (!Thread.interrupted()) {
             try {
                 poll();
             } catch (InterruptedException e) {
-                System.out.println("Poller was interrupted.");
+                log.error("Poller was interrupted", e);
             } catch (IOException e) {
-                System.out.println("Connection failed.");
+                log.error("Connection failed", e);
             } catch (FeedException e) {
-                System.out.println("Failed to open feed.");
-                e.printStackTrace();
+                log.error("Failed to open feed", e);
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("Unexpected exception", e);
             }
         }
     }
@@ -65,7 +72,7 @@ public class RSSFeedPoller implements Runnable {
             data.stream().filter(x -> !seen.contains(x)).forEach(d -> {
                 seen.add(d);
                 for (HashMap companyData : DataReader.getCompanyNames(d.getTitle())) {
-                    System.out.println("Extracted company data " + companyData);
+                    log.info("Extracted company data " + companyData);
                     if (companyData != null) {
                         try {
                             if (DataReader.getRequiredAction(d.getTitle()).equals(Action.BUY)) {
@@ -85,6 +92,6 @@ public class RSSFeedPoller implements Runnable {
         } else {
             throw new FeedException("RSS feed was empty");
         }
-
     }
+
 }

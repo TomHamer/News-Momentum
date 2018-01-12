@@ -14,7 +14,12 @@ dependencies {
     compile 'org.json:json:20170516'
     compile 'org.jsoup:jsoup:1.10.2'
     compile 'com.rometools:rome:1.7.3'
+
+    compileOnly("org.projectlombok:lombok:1.16.20")
+
+    compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.25'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.3'
+
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-all:1.10.19'
-    compile 'org.slf4j:slf4j-nop:1.7.25'
 }

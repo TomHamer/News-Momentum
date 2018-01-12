@@ -1,6 +1,10 @@
+package rss.util;
+
+import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import trade.Action;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -15,6 +19,7 @@ import java.util.stream.Collectors;
 /**
  * Created by Tom on 23/12/2017.
  */
+@Slf4j
 public class DataReader {
 
     private static boolean initialised = false;
@@ -57,7 +62,7 @@ public class DataReader {
          * Using list-map-filter-collect allows for implicit concurrency.
          */
 
-        System.out.println("Processing \"" + headline + "\"");
+        log.info("Processing \"" + headline + "\"");
         return (List<HashMap<String, String>>) Arrays.asList(headline.split(" ")).stream().map((Function) o -> {
             try {
                 return getCompanyData((String) o);

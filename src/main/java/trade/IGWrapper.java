@@ -1,3 +1,6 @@
+package trade;
+
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONException;
 import org.json.JSONObject;
 import sun.plugin.dom.exception.InvalidStateException;
@@ -12,6 +15,7 @@ import java.net.URL;
 /**
  * Created by Tom on 28/12/2017.
  */
+@Slf4j
 public class IGWrapper {
 
     private final String USER_AGENT = "Mozilla/5.0";
@@ -120,7 +124,7 @@ public class IGWrapper {
             JSONObject response = new JSONObject(br.readLine());
             return response.getString("dealReference");
         } else {
-            System.out.println("Method output: " + con.getHeaderField("content-type"));
+            log.warn("Method output: " + con.getHeaderField("content-type"));
             throw new IOException("Failed to connect to trading API. Got " + con.getResponseCode() + "(" + con.getHeaderField("errorCode") + ").");
         }
 

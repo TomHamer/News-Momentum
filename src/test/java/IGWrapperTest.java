@@ -1,4 +1,6 @@
 import org.junit.Test;
+import trade.Action;
+import trade.IGWrapper;
 
 import java.io.IOException;
 
