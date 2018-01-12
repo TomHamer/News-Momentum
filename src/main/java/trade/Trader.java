@@ -34,6 +34,8 @@ public class Trader implements Runnable {
             log.info(referenceNo);
         } catch (IOException e) {
             log.error("Could not get CFD", e);
+        } catch (UnexpectedResponseException e) {
+            log.error("Unexpected response", e);
         }
     }
 
@@ -44,6 +46,8 @@ public class Trader implements Runnable {
             log.info(referenceNo);
         } catch (IOException e) {
             log.error("Could not get CFD", e);
+        } catch (UnexpectedResponseException e) {
+            log.error("Unexpected response", e);
         }
     }
 

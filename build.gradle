@@ -2,6 +2,7 @@ description = 'News Momentum'
 version = '1.0'
 
 apply plugin: 'java'
+apply plugin: 'findbugs'
 
 sourceCompatibility = 1.8
 
@@ -15,11 +16,23 @@ dependencies {
     compile 'org.jsoup:jsoup:1.10.2'
     compile 'com.rometools:rome:1.7.3'
 
-    compileOnly("org.projectlombok:lombok:1.16.20")
+    compile 'org.projectlombok:lombok:1.16.20'
 
     compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.25'
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.3'
 
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-all:1.10.19'
+}
+
+findbugsMain {
+    reports {
+        xml.enabled = false
+        html.enabled = true
+    }
+}
+
+javadoc {
+    source = sourceSets.main.allJava
+    classpath = configurations.compile
 }
