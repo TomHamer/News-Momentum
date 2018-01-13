@@ -1,3 +1,5 @@
+package trade;
+
 /**
  * Created by Tom on 23/12/2017.
  */
