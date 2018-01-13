@@ -10,6 +10,10 @@ import rss.RSSFeedPoller;
 @Slf4j
 public class TradingNLP {
 
+    private TradingNLP() {
+
+    }
+
     public static void main(String[] args) {
         RSSFeedPoller poller = RSSFeedPoller.create();
 

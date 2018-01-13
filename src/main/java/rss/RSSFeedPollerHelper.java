@@ -11,8 +11,16 @@ import java.util.Date;
  */
 public class RSSFeedPollerHelper {
 
+    private RSSFeedPollerHelper() {
+
+    }
+
     static URL getFeed() throws MalformedURLException {
-        return new URL("https://www.accc.gov.au/rss/media_releases.xml");
+        return getFeed("https://www.accc.gov.au/rss/media_releases.xml");
+    }
+
+    private static URL getFeed(String url) throws MalformedURLException {
+        return new URL(url);
     }
 
     static boolean itemIsRecent(SyndEntry item) {

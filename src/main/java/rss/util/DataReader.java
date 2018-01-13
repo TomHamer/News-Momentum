@@ -1,19 +1,22 @@
 package rss.util;
 
+import com.google.common.base.Charsets;
+import com.google.common.collect.Sets;
+import com.google.common.io.Files;
+import lombok.NonNull;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import trade.Action;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.function.Function;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -22,18 +25,56 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DataReader {
 
+    private static final String GOOD_PHRASES_PATH = "src/main/resources/good-phrases.txt";
+    private static final String BAD_PHRASES_PATH = "src/main/resources/bad-phrases.txt";
+
     private static boolean initialised = false;
     private static HashSet<String> goodPhrases;
     private static HashSet<String> badPhrases;
 
-    private static boolean isProperNoun(String s) {
-        return !(s.toCharArray()[0] == s.toLowerCase().toCharArray()[0]);
+    private DataReader() {
+
     }
 
-    public static HashMap<String, String> getCompanyData(String s) throws IOException {
-        HashMap<String, String> toReturn = new HashMap<>();
+    static {
+        initialisePhrases();
+    }
+
+    private static void initialisePhrases() {
+        if (initialised) {
+            return;
+        }
+        // Try load the files into sets
+        try {
+            goodPhrases = Sets.newHashSet(Files.readLines(new File(GOOD_PHRASES_PATH), Charsets.UTF_8));
+            log.info("Loaded good phrases");
+
+            badPhrases = Sets.newHashSet(Files.readLines(new File(BAD_PHRASES_PATH), Charsets.UTF_8));
+            log.info("Loaded bad phrases");
+            initialised = true;
+        } catch (IOException e) {
+            log.error("Could not fully load phrases", e);
+        }
+    }
+
+    private static boolean isProperNoun(String str) {
+        return !(str.toCharArray()[0] == str.toLowerCase().toCharArray()[0]);
+    }
+
+    private static String removeBrackets(String str) {
+        // Should use Regex if we need more brackets
+        return str.replace("(", "").replace(")", "");
+    }
+
+    @Value
+    public static class Company {
+        String ticker;
+        String marketSym;
+    }
+
+    public static Company getCompanyData(@NonNull String s) throws IOException {
         if (isProperNoun(s)) {
-            //need to lemmalise s, but for now
+            // need to lemmalise s, but for now
             s = s.replace("’s", "");
 
             String url = "https://www.google.com.au/search?q=" + s;
@@ -43,11 +84,7 @@ public class DataReader {
             if (html.contains(">Stock price<")) {
                 Element stockTicker = doc.select("span[class$=kno-fv]").select("a[class$=fl]").get(0);
                 Element marketSymbol = doc.select("span[class$=kno-fv]").select("span[class$=_RWc]").get(0);
-
-                toReturn.put("ticker", stockTicker.text());
-                toReturn.put("marketSym", marketSymbol.text().replace("(", "").replace(")", ""));
-                return toReturn;
-
+                return new Company(stockTicker.text(), removeBrackets(marketSymbol.text()));
             } else {
                 return null;
             }
@@ -56,75 +93,31 @@ public class DataReader {
         }
     }
 
-
-    public static List<HashMap<String, String>> getCompanyNames(String headline) {
-        /*
-         * Using list-map-filter-collect allows for implicit concurrency.
-         */
-
+    public static List<Company> getCompanyNames(@NonNull String headline) {
+        // Using list-map-filter-collect allows for implicit concurrency.
         log.info("Processing \"" + headline + "\"");
-        return (List<HashMap<String, String>>) Arrays.asList(headline.split(" ")).stream().map((Function) o -> {
+
+        List<String> words = Arrays.asList(headline.split(" "));
+        return words.stream().map(word -> {
             try {
-                return getCompanyData((String) o);
+                return getCompanyData(word);
             } catch (IOException e) {
+                log.warn("Couldn't get company data", e);
                 return null;
             }
-        }).filter(o -> !(o == null)).collect(Collectors.toList());
+        }).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
+    public static Action getRequiredAction(@NonNull String title) {
+        initialisePhrases();
 
-    public static Action getRequiredAction(String title) {
-
-        if (!initialised) initialise();
-
-        for (String phrase : goodPhrases) {
-            if (title.contains(phrase)) {
-                return (Action.BUY);
-            }
+        if (goodPhrases.stream().anyMatch(title::contains)) {
+            return Action.BUY;
+        } else if (badPhrases.stream().anyMatch(title::contains)) {
+            return Action.SELL;
+        } else {
+            return Action.HOLD;
         }
-
-        for (String phrase : badPhrases) {
-            if (title.contains(phrase)) {
-                return (Action.SELL);
-            }
-        }
-
-        return Action.HOLD;
-
-
     }
-
-    private static void initialise() {
-
-        goodPhrases = new HashSet<>();
-        badPhrases = new HashSet<>();
-
-        try (BufferedReader br = new BufferedReader(new FileReader("src/main/resources/good-phrases.txt"))) {
-            String line = "";
-
-            while (line != null) {
-                line = br.readLine();
-                if (line != null) goodPhrases.add(line);
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        try (BufferedReader br = new BufferedReader(new FileReader("src/main/resources/bad-phrases.txt"))) {
-            String line = "";
-
-            while (line != null) {
-                line = br.readLine();
-                if (line != null) badPhrases.add(line);
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        initialised = true;
-    }
-
 
 }

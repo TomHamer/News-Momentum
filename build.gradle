@@ -2,6 +2,7 @@ description = 'News Momentum'
 version = '1.0'
 
 apply plugin: 'java'
+apply plugin: 'checkstyle'
 apply plugin: 'findbugs'
 
 sourceCompatibility = 1.8
@@ -18,6 +19,7 @@ dependencies {
 
     compile 'org.projectlombok:lombok:1.16.20'
 
+    compile group: 'com.google.guava', name: 'guava', version: '23.5-jre'
     compile group: 'org.slf4j', name: 'slf4j-log4j12', version: '1.7.25'
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.3'
 
@@ -35,4 +37,8 @@ findbugsMain {
 javadoc {
     source = sourceSets.main.allJava
     classpath = configurations.compile
+}
+
+checkstyle {
+    toolVersion "7.5"
 }

@@ -23,15 +23,15 @@ public class Trader implements Runnable {
         this.ticker = ticker;
         this.marketSymbol = marketSymbol;
         this.closeDelay = closeDelay;
-        igWrapper = new IGWrapper();
+        this.igWrapper = new IGWrapper();
     }
 
 
-    public void buy(String ticker, String marketSymbol, int closeDelay) {
+    private void buy(String ticker, String marketSymbol, int closeDelay) {
         //place a buy order, then make an async call that sells it after a period of time eg 30 mins
         try {
             String referenceNo = igWrapper.getCFD(Action.BUY, ticker, marketSymbol, 100);
-            log.info(referenceNo);
+            log.info("Reference number: " + referenceNo);
         } catch (IOException e) {
             log.error("Could not get CFD", e);
         } catch (UnexpectedResponseException e) {
@@ -39,7 +39,7 @@ public class Trader implements Runnable {
         }
     }
 
-    public void shortSell(String ticker, String marketSymbol, int closeDelay) {
+    private void shortSell(String ticker, String marketSymbol, int closeDelay) {
         //short sell
         try {
             String referenceNo = igWrapper.getCFD(Action.SELL, ticker, marketSymbol, 100);
@@ -54,6 +54,8 @@ public class Trader implements Runnable {
     @Override
     public void run() {
         switch (toDo) {
+            case HOLD:
+                break;
             case BUY:
                 buy(ticker, marketSymbol, closeDelay);
                 break;
