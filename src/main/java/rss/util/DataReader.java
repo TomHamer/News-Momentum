@@ -2,7 +2,7 @@ package rss.util;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.Sets;
-import com.google.common.io.Files;
+import com.google.common.io.Resources;
 import lombok.NonNull;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -11,8 +11,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import trade.Action;
 
-import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -25,8 +25,10 @@ import java.util.stream.Collectors;
 @Slf4j
 public class DataReader {
 
-    private static final String GOOD_PHRASES_PATH = "src/main/resources/good-phrases.txt";
-    private static final String BAD_PHRASES_PATH = "src/main/resources/bad-phrases.txt";
+    private static final String GOOD_PHRASES_FILE_NAME = "good-phrases.txt";
+    private static final String BAD_PHRASES_FILE_NAME = "bad-phrases.txt";
+    private static final URL GOOD_PHRASES_URL = Resources.getResource(GOOD_PHRASES_FILE_NAME);
+    private static final URL BAD_PHRASES_URL = Resources.getResource(BAD_PHRASES_FILE_NAME);
 
     private static boolean initialised = false;
     private static HashSet<String> goodPhrases;
@@ -37,19 +39,19 @@ public class DataReader {
     }
 
     static {
-        initialisePhrases();
+        initialisePhrasesIfRequired();
     }
 
-    private static void initialisePhrases() {
+    private static void initialisePhrasesIfRequired() {
         if (initialised) {
             return;
         }
         // Try load the files into sets
         try {
-            goodPhrases = Sets.newHashSet(Files.readLines(new File(GOOD_PHRASES_PATH), Charsets.UTF_8));
+            goodPhrases = Sets.newHashSet(Resources.readLines(GOOD_PHRASES_URL, Charsets.UTF_8));
             log.info("Loaded good phrases");
 
-            badPhrases = Sets.newHashSet(Files.readLines(new File(BAD_PHRASES_PATH), Charsets.UTF_8));
+            badPhrases = Sets.newHashSet(Resources.readLines(BAD_PHRASES_URL, Charsets.UTF_8));
             log.info("Loaded bad phrases");
             initialised = true;
         } catch (IOException e) {
@@ -109,7 +111,7 @@ public class DataReader {
     }
 
     public static Action getRequiredAction(@NonNull String title) {
-        initialisePhrases();
+        initialisePhrasesIfRequired();
 
         if (goodPhrases.stream().anyMatch(title::contains)) {
             return Action.BUY;

@@ -1,5 +1,6 @@
 package trade;
 
+import com.google.common.base.Charsets;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 
@@ -16,10 +17,11 @@ import java.net.URL;
 @Slf4j
 public class IGWrapper {
 
-    private final String USER_AGENT = "Mozilla/5.0";
+    private static final String USER_AGENT = "Mozilla/5.0";
+    private static final String API_KEY = "245d44fad406987d8a6ce78e971870fe3bae1087";
+
     private final String authToken;
     private final String csToken;
-    private final String API_KEY = "245d44fad406987d8a6ce78e971870fe3bae1087";
 
     public IGWrapper() throws IOException {
         String url = "https://demo-api.ig.com/gateway/deal/session";
@@ -33,16 +35,16 @@ public class IGWrapper {
         con.setRequestProperty("Content-Type", "application/json; charset=utf8");
         con.setRequestProperty("User-Agent", USER_AGENT);
         con.setDoOutput(true);
-        String str =  "{ \n" +
+        String str = "{ \n" +
                 "\"identifier\": \"newsmomentum\", \n" +
                 "\"password\": \"ManalMomentum1\" \n" +
                 "} ";
         byte[] outputInBytes = str.getBytes("UTF-8");
         OutputStream os = con.getOutputStream();
-        os.write( outputInBytes );
+        os.write(outputInBytes);
         os.close();
 
-        if(con.getResponseCode() == 200) {
+        if (con.getResponseCode() == 200) {
             this.authToken = con.getHeaderField("X-SECURITY-TOKEN");
             this.csToken = con.getHeaderField("CST");
         } else {
@@ -74,11 +76,11 @@ public class IGWrapper {
             con.setRequestProperty("User-Agent", USER_AGENT);
             con.setDoOutput(true);
             if (200 <= con.getResponseCode() && con.getResponseCode() <= 299) {
-                br = new BufferedReader(new InputStreamReader(con.getInputStream()));
+                br = new BufferedReader(new InputStreamReader(con.getInputStream(), Charsets.UTF_8));
                 JSONObject jsonObject = new JSONObject(br.readLine());
                 return jsonObject.getJSONArray("markets").getJSONObject(0).getString("epic");
             }
-            throw new UnexpectedResponseException("Expected 200, got "+con.getResponseMessage());
+            throw new UnexpectedResponseException("Expected 200, got " + con.getResponseMessage());
         } catch (Exception e) {
             throw e;
         } finally {
@@ -128,12 +130,13 @@ public class IGWrapper {
             os.close();
 
             if (con.getResponseCode() == 200) {
-                br = new BufferedReader(new InputStreamReader(con.getInputStream()));
+                br = new BufferedReader(new InputStreamReader(con.getInputStream(), Charsets.UTF_8));
                 JSONObject response = new JSONObject(br.readLine());
                 return response.getString("dealReference");
             } else {
                 log.warn("Method output: " + con.getHeaderField("content-type"));
-                throw new IOException("Failed to connect to trading API. Got " + con.getResponseCode() + "(" + con.getHeaderField("errorCode") + ").");
+                throw new IOException("Failed to connect to trading API. Got " +
+                        con.getResponseCode() + "(" + con.getHeaderField("errorCode") + ").");
             }
             //here add the required body and request properties for the trade.
         } finally {

@@ -1,5 +1,6 @@
 package rss;
 
+import com.google.common.base.Charsets;
 import com.rometools.rome.feed.synd.SyndEntry;
 import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.FeedException;
@@ -24,7 +25,7 @@ import static java.lang.Integer.min;
 @Slf4j
 public class RSSFeedPoller implements Runnable {
 
-    private final static int LOOKAHEAD = 5;
+    private static final int LOOKAHEAD = 5;
     private URL feedUrl;
     private HashSet<SyndEntry> seen;
 
@@ -62,7 +63,7 @@ public class RSSFeedPoller implements Runnable {
         TimeUnit.SECONDS.sleep(1);
 
         SyndFeedInput input = new SyndFeedInput();
-        SyndFeed feed = input.build(new InputStreamReader(feedUrl.openStream()));
+        SyndFeed feed = input.build(new InputStreamReader(feedUrl.openStream(), Charsets.UTF_8));
 
         if (feed.getEntries() != null) {
             List<SyndEntry> data = feed.getEntries();

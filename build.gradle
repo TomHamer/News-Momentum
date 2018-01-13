@@ -42,3 +42,12 @@ javadoc {
 checkstyle {
     toolVersion "7.5"
 }
+
+jar {
+  manifest {
+    attributes 'Main-Class': 'startup.TradingNLP'
+  }
+  from {
+    configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+  }
+}
