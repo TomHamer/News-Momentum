@@ -4,12 +4,12 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.Sets;
 import com.google.common.io.Resources;
 import lombok.NonNull;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import trade.Action;
+import trade.model.Action;
+import trade.model.Company;
 
 import java.io.IOException;
 import java.net.URL;
@@ -59,8 +59,9 @@ public class DataReader {
         }
     }
 
-    private static boolean isProperNoun(String str) {
-        return !(str.toCharArray()[0] == str.toLowerCase().toCharArray()[0]);
+    private static boolean isProperNoun(String word) {
+        // Check first letter in word is capitalised
+        return word.charAt(0) != Character.toLowerCase(word.charAt(0));
     }
 
     private static String removeBrackets(String str) {
@@ -68,17 +69,12 @@ public class DataReader {
         return str.replace("(", "").replace(")", "");
     }
 
-    @Value
-    public static class Company {
-        String ticker;
-        String marketSym;
-    }
-
     public static Company getCompanyData(@NonNull String s) throws IOException {
         if (isProperNoun(s)) {
             // need to lemmalise s, but for now
             s = s.replace("’s", "");
 
+            // FIXME: Find a better way to do this, or use some finance API
             String url = "https://www.google.com.au/search?q=" + s;
             String html = Jsoup.connect(url).get().html();
             Document doc = Jsoup.parse(html);
@@ -95,7 +91,7 @@ public class DataReader {
         }
     }
 
-    public static List<Company> getCompanyNames(@NonNull String headline) {
+    public static List<Company> getCompanies(@NonNull String headline) {
         // Using list-map-filter-collect allows for implicit concurrency.
         log.info("Processing \"" + headline + "\"");
 
@@ -104,7 +100,7 @@ public class DataReader {
             try {
                 return getCompanyData(word);
             } catch (IOException e) {
-                log.warn("Couldn't get company data", e);
+                log.warn("Couldn't getSweeper company data", e);
                 return null;
             }
         }).filter(Objects::nonNull).collect(Collectors.toList());

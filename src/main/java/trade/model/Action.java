@@ -1,4 +1,4 @@
-package trade;
+package trade.model;
 
 /**
  * Created by Tom on 23/12/2017.

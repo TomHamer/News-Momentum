@@ -1,8 +1,11 @@
-package trade;
+package trade.broker;
 
 import com.google.common.base.Charsets;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
+import trade.model.Action;
+import trade.model.Company;
+import util.UnexpectedResponseException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,7 +18,7 @@ import java.net.URL;
  * Created by Tom on 28/12/2017.
  */
 @Slf4j
-public class IGWrapper {
+public class IGWrapper implements Broker {
 
     private static final String USER_AGENT = "Mozilla/5.0";
     private static final String API_KEY = "245d44fad406987d8a6ce78e971870fe3bae1087";
@@ -90,7 +93,7 @@ public class IGWrapper {
         }
     }
 
-    public String getCFD(Action action, String ticker, String market, int size) throws IOException, UnexpectedResponseException {
+    public String getCFD(Action action, String ticker, String market, int size) {
         OutputStream os = null;
         BufferedReader br = null;
         try {
@@ -132,27 +135,46 @@ public class IGWrapper {
             if (con.getResponseCode() == 200) {
                 br = new BufferedReader(new InputStreamReader(con.getInputStream(), Charsets.UTF_8));
                 JSONObject response = new JSONObject(br.readLine());
+                br.close();
                 return response.getString("dealReference");
             } else {
                 log.warn("Method output: " + con.getHeaderField("content-type"));
                 throw new IOException("Failed to connect to trading API. Got " +
                         con.getResponseCode() + "(" + con.getHeaderField("errorCode") + ").");
             }
-            //here add the required body and request properties for the trade.
-        } finally {
-            if (os != null) {
-                os.close();
-            }
 
-            if (br != null) {
-                br.close();
+            //here add the required body and request properties for the trade.
+        } catch (UnexpectedResponseException | IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                if (os != null) {
+                    os.close();
+                }
+                if (br != null) {
+                    br.close();
+                }
+            } catch (IOException e) {
+                log.error("Could not close readers", e);
             }
         }
 
+        return null;
     }
 
     public void exitPosition(String dealReference) {
 
     }
 
+    @Override
+    public String buy(Company company, int size) {
+        log.info("BOUGHT " + size + " IN "  + company);
+        return "123";
+    }
+
+    @Override
+    public String sell(Company company, int size) {
+        log.info("SOLD " + size + " IN "  + company);
+        return "123";
+    }
 }

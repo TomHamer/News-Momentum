@@ -1,4 +1,4 @@
-package trade;
+package util;
 
 public class UnexpectedResponseException extends Exception {
 
